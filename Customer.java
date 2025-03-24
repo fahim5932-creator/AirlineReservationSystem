@@ -186,18 +186,17 @@ public class Customer {
     }
 
 
-    String randomIDDisplay(String randomID) {
+    public String randomIDDisplay(String randomID) {
         StringBuilder newString = new StringBuilder();
-        for (int i = 0; i <= randomID.length(); i++) {
+        for (int i = 0; i < randomID.length(); i++) {
             if (i == 3) {
                 newString.append(" ").append(randomID.charAt(i));
-            } else if (i < randomID.length()) {
+            } else {
                 newString.append(randomID.charAt(i));
             }
         }
         return newString.toString();
     }
-
     void addNewFlightToCustomerList(Flight f) {
         this.flightsRegisteredByUser.add(f);
 
