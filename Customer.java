@@ -97,17 +97,11 @@ public class Customer {
         }
     }
 
-
     public boolean isUniqueData(String emailID) {
-        boolean isUnique = false;
-        for (Customer c : customerCollection) {
-            if (emailID.equals(c.getEmail())) {
-                isUnique = true;
-                break;
-            }
-        }
-        return isUnique;
+        return customerCollection.stream()
+                .anyMatch(c -> emailID.equals(c.getEmail()));
     }
+
 
     public void editUserInfo(String ID) {
         boolean isFound = false;
