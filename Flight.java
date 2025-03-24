@@ -66,18 +66,10 @@ public class Flight extends FlightDistance {
         this.gate = gate;
     }
     public boolean isCustomerAlreadyAdded(Customer customer) {
-        for (Customer existingCustomer : listOfRegisteredCustomersInAFlight) {
-            if (existingCustomer.getUserID().equals(customer.getUserID())) {
-                return true;
-            }
-        }
-        return false;
+        return listOfRegisteredCustomersInAFlight.stream()
+                .anyMatch(c -> c.getUserID().equals(customer.getUserID()));
     }
 
-    /**
-     * Creates Flight Schedule. All methods of this class are collaborating with each other
-     * to create flight schedule of the said length in this method.
-     */
     public void flightScheduler() {
         int numOfFlights = 15;              // decides how many unique flights to be included/display in scheduler
         RandomGenerator r1 = new RandomGenerator();
