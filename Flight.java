@@ -233,6 +233,33 @@ public class Flight extends FlightDistance {
         return distanceString;
     }
 
+    private int calculateHours(double time) {
+        return (int) time;
+    }
+
+    private int calculateMinutes(double time) {
+        return (int) ((time - (int) time) * 60);
+    }
+
+    private String formatTime(int hours, int minutes) {
+        if (hours <= 9 && minutes < 10) {
+            return String.format("0%d:0%d", hours, minutes);
+        } else if (hours <= 9) {
+            return String.format("0%d:%d", hours, minutes);
+        } else if (minutes < 10) {
+            return String.format("%d:0%d", hours, minutes);
+        } else {
+            return String.format("%d:%d", hours, minutes);
+        }
+    }
+
+    public String calculateFlightTime(double distanceBetweenTheCities) {
+        double groundSpeed = 450; // knots
+        double time = distanceBetweenTheCities / groundSpeed;
+        int hours = calculateHours(time);
+        int minutes = calculateMinutes(time);
+        return formatTime(hours, minutes);
+    }
     private double degreeToRadian(double deg) {
         return (deg * Math.PI / 180.0);
     }
