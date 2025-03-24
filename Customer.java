@@ -43,6 +43,17 @@ public class Customer {
         this.numOfTicketsBookedByUser = new ArrayList<>();
     }
 
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
+    private boolean isValidPhoneNumber(String phone) {
+        return phone != null && phone.matches("^[0-9]{10}$");
+    }
+
+    private boolean isValidAge(int age) {
+        return age > 0 && age < 120;
+    }
 
     public void addNewCustomer() {
         System.out.printf("\n\n\n%60s ++++++++++++++ Welcome to the Customer Registration Portal ++++++++++++++", "");
@@ -51,10 +62,8 @@ public class Customer {
         String name = read.nextLine();
         System.out.print("Enter your email address :\t");
         String email = read.nextLine();
-        while (isUniqueData(email)) {
-            System.out.println(
-                    "ERROR!!! User with the same email already exists... Use new email or login using the previous credentials....");
-            System.out.print("Enter your email address :\t");
+        while (!isValidEmail(email)) {
+            System.out.println("Invalid email format. Please enter a valid email:");
             email = read.nextLine();
         }
         System.out.print("Enter your Password :\t");
