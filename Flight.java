@@ -5,8 +5,16 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-public class Flight extends FlightDistance {
+// Adding enum
+public enum FlightStatus {
+    SCHEDULED,
+    CANCELLED
+}
 
+// Add these constants in the Flight class
+public class Flight extends FlightDistance {
+    private static final int MAX_TICKETS_PER_BOOKING = 10;
+    private static final int MIN_SEATS_PER_FLIGHT = 75;
     //        ************************************************************ Fields ************************************************************
 
     private final String flightSchedule;
