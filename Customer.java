@@ -77,7 +77,11 @@ public class Customer {
         customerCollection.add(new Customer(name, email, password, phone, address, age));
     }
 
-
+    public Optional<Customer> findCustomerById(String userID) {
+        return customerCollection.stream()
+                .filter(c -> c.getUserID().equals(userID))
+                .findFirst();
+    }
     private String toString(int i) {
         return String.format("%10s| %-10d | %-10s | %-32s | %-7s | %-27s | %-35s | %-23s |", "", i,
                 randomIDDisplay(userID), name, age, email, address, phone);
@@ -85,22 +89,9 @@ public class Customer {
 
 
     public void searchUser(String ID) {
-        boolean isFound = false;
-        Customer customerWithTheID = customerCollection.get(0);
-        for (Customer c : customerCollection) {
-            if (ID.equals(c.getUserID())) {
-                System.out.printf("%-50sCustomer Found...!!!Here is the Full Record...!!!\n\n\n", " ");
-                displayHeader();
-                isFound = true;
-                customerWithTheID = c;
-                break;
-            }
-        }
-        if (isFound) {
-            System.out.println(customerWithTheID.toString(1));
-            System.out.printf(
-                    "%10s+------------+------------+----------------------------------+---------+-----------------------------+-------------------------------------+-------------------------+\n",
-                    "");
+        Optional<Customer> customer = findCustomerById(ID);
+        if (customer.isPresent()) {
+            System.out.println(customer.get().toString(1));
         } else {
             System.out.printf("%-50sNo Customer with the ID %s Found...!!!\n", " ", ID);
         }
