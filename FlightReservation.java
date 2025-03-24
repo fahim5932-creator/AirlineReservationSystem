@@ -9,13 +9,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
-public class FlightReservation implements DisplayClass {
+public interface FlightReservationInterface {
+    void bookFlight(String flightNo, int numOfTickets, String userID);
+    void cancelFlight(String userID);
+    void displayFlightsRegisteredByOneUser(String userID);
+}
 
-    //        ************************************************************ Fields ************************************************************
+public class FlightReservation implements FlightReservationInterface {
+
     Flight flight = new Flight();
     int flightIndexInFlightList;
 
-    //        ************************************************************ Behaviours/Methods ************************************************************
 
 
     /**
