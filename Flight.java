@@ -65,6 +65,14 @@ public class Flight extends FlightDistance {
         this.listOfRegisteredCustomersInAFlight = new ArrayList<>();
         this.gate = gate;
     }
+    public boolean isCustomerAlreadyAdded(Customer customer) {
+        for (Customer existingCustomer : listOfRegisteredCustomersInAFlight) {
+            if (existingCustomer.getUserID().equals(customer.getUserID())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Creates Flight Schedule. All methods of this class are collaborating with each other
@@ -129,7 +137,7 @@ public class Flight extends FlightDistance {
      */
     public String calculateFlightTime(double distanceBetweenTheCities) {
         double groundSpeed = 450;
-        double time = (distanceBetweenTheCities / groundSpeed);
+        double time = distanceBetweenTheCities / groundSpeed;
         String timeInString = String.format("%.4s", time);
         String[] timeArray = timeInString.replace('.', ':').split(":");
         int hours = Integer.parseInt(timeArray[0]);
@@ -154,6 +162,9 @@ public class Flight extends FlightDistance {
         } else {
             return String.format("%s:%s", hours, minutes);
         }
+
+        return formattedTime;
+
     }
 
     /**
@@ -311,6 +322,7 @@ public class Flight extends FlightDistance {
     public List<Flight> getFlightList() {
         return flightList;
     }
+
 
     public List<Customer> getListOfRegisteredCustomersInAFlight() {
         return listOfRegisteredCustomersInAFlight;
