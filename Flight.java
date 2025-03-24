@@ -28,6 +28,7 @@ public class Flight extends FlightDistance {
     private int numOfSeatsInTheFlight;
     private List<Customer> listOfRegisteredCustomersInAFlight;
     private int customerIndex;
+    private List<Customer> listOfRegisteredCustomersInAFlight = new ArrayList<>();
     private static int nextFlightDay = 0;
     private static final List<Flight> flightList = new ArrayList<>();
 
@@ -309,6 +310,10 @@ public class Flight extends FlightDistance {
 
     public List<Flight> getFlightList() {
         return flightList;
+    }
+
+    public List<Customer> getListOfRegisteredCustomersInAFlight() {
+        return listOfRegisteredCustomersInAFlight;
     }
 
     public List<Customer> getListOfRegisteredCustomersInAFlight() {
