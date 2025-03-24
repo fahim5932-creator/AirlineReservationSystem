@@ -1,7 +1,13 @@
 import java.util.*;
 
-
-public class Customer {
+public interface CustomerInterface {
+    void addNewCustomer();
+    void searchUser(String ID);
+    void editUserInfo(String ID);
+    void deleteUser(String ID);
+    void displayCustomersData(boolean showHeader);
+}
+public class Customer implements CustomerInterface {
 
 
     private final String userID;
