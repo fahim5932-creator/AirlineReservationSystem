@@ -1,324 +1,118 @@
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import java.time.*;
+import java.time.format.*;
+import java.time.temporal.*;
 import java.util.*;
 
-public enum FlightStatus {
-    SCHEDULED,
-    CANCELLED
-}
-
 public class Flight extends FlightDistance {
-    private static final int MAX_TICKETS_PER_BOOKING = 10;
-    private static final int MIN_SEATS_PER_FLIGHT = 75;
+    private static final int MIN_SEATS = 50;
+    private static final int MAX_SEATS = 500;
+    private static final double AVERAGE_SPEED_KNOTS = 450.0;
 
-
-    private final String flightSchedule;
     private final String flightNumber;
-    private final String fromWhichCity;
+    private final String fromCity;
+    private final String toCity;
     private final String gate;
-    private final String toWhichCity;
-    private double distanceInMiles;
-    private double distanceInKm;
-    private String flightTime;
-    private int numOfSeatsInTheFlight;
-    private List<Customer> listOfRegisteredCustomersInAFlight;
-    private int customerIndex;
-    private List<Customer> listOfRegisteredCustomersInAFlight = new ArrayList<>();
-    private static int nextFlightDay = 0;
-    private static final List<Flight> flightList = new ArrayList<>();
+    private final LocalDateTime departureTime;
+    private final Duration flightDuration;
+    private int availableSeats;
+    private final List<Customer> registeredCustomers;
+    private static final List<Flight> allFlights = new ArrayList<>();
 
-    //        ************************************************************ Behaviours/Methods ************************************************************
-
-    Flight() {
-        this.flightSchedule = null;
-        this.flightNumber = null;
-        this.numOfSeatsInTheFlight = 0;
-        toWhichCity = null;
-        fromWhichCity = null;
-        this.gate = null;
+    public Flight(String flightNumber, String fromCity, String toCity,
+                  String gate, LocalDateTime departureTime,
+                  double distanceMiles, int totalSeats) {
+        this.flightNumber = validateFlightNumber(flightNumber);
+        this.fromCity = validateCity(fromCity);
+        this.toCity = validateCity(toCity);
+        this.gate = validateGate(gate);
+        this.departureTime = validateDepartureTime(departureTime);
+        this.flightDuration = calculateFlightDuration(distanceMiles);
+        this.availableSeats = validateSeats(totalSeats);
+        this.registeredCustomers = new ArrayList<>();
+        allFlights.add(this);
     }
 
-    /**
-     * Creates new random flight from the specified arguments.
-     *
-     * @param flightSchedule           includes departure date and time of flight
-     * @param flightNumber             unique identifier of each flight
-     * @param numOfSeatsInTheFlight    available seats in the flight
-     * @param chosenDestinations       consists of origin and destination airports(cities)
-     * @param distanceBetweenTheCities gives the distance between the airports both in miles and kilometers
-     * @param gate                     from where passengers will board to the aircraft
-     */
-    Flight(String flightSchedule, String flightNumber, int numOfSeatsInTheFlight, String[][] chosenDestinations, String[] distanceBetweenTheCities, String gate) {
-        this.flightSchedule = flightSchedule;
-        this.flightNumber = flightNumber;
-        this.numOfSeatsInTheFlight = numOfSeatsInTheFlight;
-        this.fromWhichCity = chosenDestinations[0][0];
-        this.toWhichCity = chosenDestinations[1][0];
-        this.distanceInMiles = Double.parseDouble(distanceBetweenTheCities[0]);
-        this.distanceInKm = Double.parseDouble(distanceBetweenTheCities[1]);
-        this.flightTime = calculateFlightTime(distanceInMiles);
-        this.listOfRegisteredCustomersInAFlight = new ArrayList<>();
-        this.gate = gate;
-    }
-    public boolean isCustomerAlreadyAdded(Customer customer) {
-        return listOfRegisteredCustomersInAFlight.stream()
-                .anyMatch(c -> c.getUserID().equals(customer.getUserID()));
-    }
-
-    public void flightScheduler() {
-        int numOfFlights = 15;              // decides how many unique flights to be included/display in scheduler
-        RandomGenerator r1 = new RandomGenerator();
-        for (int i = 0; i < numOfFlights; i++) {
-            String[][] chosenDestinations = r1.randomDestinations();
-            String[] distanceBetweenTheCities = calculateDistance(Double.parseDouble(chosenDestinations[0][1]), Double.parseDouble(chosenDestinations[0][2]), Double.parseDouble(chosenDestinations[1][1]), Double.parseDouble(chosenDestinations[1][2]));
-            String flightSchedule = createNewFlightsAndTime();
-            String flightNumber = r1.randomFlightNumbGen(2, 1).toUpperCase();
-            int numOfSeatsInTheFlight = r1.randomNumOfSeats();
-            String gate = r1.randomFlightNumbGen(1, 30);
-            flightList.add(new Flight(flightSchedule, flightNumber, numOfSeatsInTheFlight, chosenDestinations, distanceBetweenTheCities, gate.toUpperCase()));
+    // Validation methods
+    private String validateFlightNumber(String number) {
+        if (number == null || !number.matches("^[A-Z]{2}-\\d{3}$")) {
+            throw new IllegalArgumentException("Invalid flight number format");
         }
+        return number;
     }
 
-
-    void addNewCustomerToFlight(Customer customer) {
-        this.listOfRegisteredCustomersInAFlight.add(customer);
-    }
-
-
-    void addTicketsToExistingCustomer(Customer customer, int numOfTickets) {
-        customer.addExistingFlightToCustomerList(customerIndex, numOfTickets);
-    }
-
-    boolean isCustomerAlreadyAdded(List<Customer> customersList, Customer customer) {
-        boolean isAdded = false;
-        for (Customer customer1 : customersList) {
-            if (customer1.getUserID().equals(customer.getUserID())) {
-                isAdded = true;
-                customerIndex = customersList.indexOf(customer1);
-                break;
-            }
+    private String validateCity(String city) {
+        if (city == null || city.trim().isEmpty()) {
+            throw new IllegalArgumentException("City cannot be empty");
         }
-        return isAdded;
+        return city;
     }
 
-
-    public String calculateFlightTime(double distanceBetweenTheCities) {
-        double groundSpeed = 450;
-        double time = distanceBetweenTheCities / groundSpeed;
-        String timeInString = String.format("%.4s", time);
-        String[] timeArray = timeInString.replace('.', ':').split(":");
-        int hours = Integer.parseInt(timeArray[0]);
-        int minutes = Integer.parseInt(timeArray[1]);
-        int modulus = minutes % 5;
-        // Changing flight time to make minutes near/divisible to 5.
-        if (modulus < 3) {
-            minutes -= modulus;
-        } else {
-            minutes += 5 - modulus;
+    private String validateGate(String gate) {
+        if (gate == null || !gate.matches("^[A-Z]\\d{1,2}$")) {
+            throw new IllegalArgumentException("Invalid gate format");
         }
-        if (minutes >= 60) {
-            minutes -= 60;
-            hours++;
-        }
-        if (hours <= 9 && Integer.toString(minutes).length() == 1) {
-            return String.format("0%s:%s0", hours, minutes);
-        } else if (hours <= 9 && Integer.toString(minutes).length() > 1) {
-            return String.format("0%s:%s", hours, minutes);
-        } else if (hours > 9 && Integer.toString(minutes).length() == 1) {
-            return String.format("%s:%s0", hours, minutes);
-        } else {
-            return String.format("%s:%s", hours, minutes);
-        }
-
-        return formattedTime;
-
-    }
-
-
-    public String fetchArrivalTime() {
-        /*These lines convert the String of flightSchedule to LocalDateTIme and add the arrivalTime to it....*/
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm a ");
-        LocalDateTime departureDateTime = LocalDateTime.parse(flightSchedule, formatter);
-
-        /*Getting the Flight Time, plane was in air*/
-        String[] flightTime = getFlightTime().split(":");
-        int hours = Integer.parseInt(flightTime[0]);
-        int minutes = Integer.parseInt(flightTime[1]);
-
-
-        LocalDateTime arrivalTime;
-
-        arrivalTime = departureDateTime.plusHours(hours).plusMinutes(minutes);
-        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("EE, dd-MM-yyyy HH:mm a");
-        return arrivalTime.format(formatter1);
-
-    }
-
-    void deleteFlight(String flightNumber) {
-        boolean isFound = false;
-        Iterator<Flight> list = flightList.iterator();
-        while (list.hasNext()) {
-            Flight flight = list.next();
-            if (flight.getFlightNumber().equalsIgnoreCase(flightNumber)) {
-                isFound = true;
-                break;
-            }
-        }
-        if (isFound) {
-            list.remove();
-        } else {
-            System.out.println("Flight with given Number not found...");
-        }
-        displayFlightSchedule();
-    }
-
-    @Override
-    public String[] calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        double theta = lon1 - lon2;
-        double distance = Math.sin(degreeToRadian(lat1)) * Math.sin(degreeToRadian(lat2)) + Math.cos(degreeToRadian(lat1)) * Math.cos(degreeToRadian(lat2)) * Math.cos(degreeToRadian(theta));
-        distance = Math.acos(distance);
-        distance = radianToDegree(distance);
-        distance = distance * 60 * 1.1515;
-        /* On the Zero-Index, distance will be in Miles, on 1st-index, distance will be in KM and on the 2nd index distance will be in KNOTS*/
-        String[] distanceString = new String[3];
-        distanceString[0] = String.format("%.2f", distance * 0.8684);
-        distanceString[1] = String.format("%.2f", distance * 1.609344);
-        distanceString[2] = Double.toString(Math.round(distance * 100.0) / 100.0);
-        return distanceString;
-    }
-
-    private int calculateHours(double time) {
-        return (int) time;
-    }
-
-    private int calculateMinutes(double time) {
-        return (int) ((time - (int) time) * 60);
-    }
-
-    private String formatTime(int hours, int minutes) {
-        if (hours <= 9 && minutes < 10) {
-            return String.format("0%d:0%d", hours, minutes);
-        } else if (hours <= 9) {
-            return String.format("0%d:%d", hours, minutes);
-        } else if (minutes < 10) {
-            return String.format("%d:0%d", hours, minutes);
-        } else {
-            return String.format("%d:%d", hours, minutes);
-        }
-    }
-
-    public String calculateFlightTime(double distanceBetweenTheCities) {
-        double groundSpeed = 450; // knots
-        double time = distanceBetweenTheCities / groundSpeed;
-        int hours = calculateHours(time);
-        int minutes = calculateMinutes(time);
-        return formatTime(hours, minutes);
-    }
-    private double degreeToRadian(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    private double radianToDegree(double rad) {
-        return (rad * 180.0 / Math.PI);
-    }
-
-    public void displayFlightSchedule() {
-
-        Iterator<Flight> flightIterator = flightList.iterator();
-        System.out.println();
-        System.out.print("+------+-------------------------------------------+-----------+------------------+-----------------------+------------------------+---------------------------+-------------+--------+------------------------+\n");
-        System.out.printf("| Num  | FLIGHT SCHEDULE\t\t\t   | FLIGHT NO | Available Seats  | \tFROM ====>>       | \t====>> TO\t   | \t    ARRIVAL TIME       | FLIGHT TIME |  GATE  |   DISTANCE(MILES/KMS)  |%n");
-        System.out.print("+------+-------------------------------------------+-----------+------------------+-----------------------+------------------------+---------------------------+-------------+--------+------------------------+\n");
-        int i = 0;
-        while (flightIterator.hasNext()) {
-            i++;
-            Flight f1 = flightIterator.next();
-            System.out.println(f1.toString(i));
-             System.out.print("+------+-------------------------------------------+-----------+------------------+-----------------------+------------------------+---------------------------+-------------+--------+------------------------+\n");
-        }
-    }
-
-    @Override
-    public String toString(int i) {
-        return String.format("| %-5d| %-41s | %-9s | \t%-9s | %-21s | %-22s | %-10s  |   %-6sHrs |  %-4s  |  %-8s / %-11s|", i, flightSchedule, flightNumber, numOfSeatsInTheFlight, fromWhichCity, toWhichCity, fetchArrivalTime(), flightTime, gate, distanceInMiles, distanceInKm);
-    }
-
-    public String createNewFlightsAndTime() {
-
-        Calendar c = Calendar.getInstance();
-        // Incrementing nextFlightDay, so that next scheduled flight would be in the future, not in the present
-        nextFlightDay += Math.random() * 7;
-        c.add(Calendar.DATE, nextFlightDay);
-        c.add(Calendar.HOUR, nextFlightDay);
-        c.set(Calendar.MINUTE, ((c.get(Calendar.MINUTE) * 3) - (int) (Math.random() * 45)));
-        Date myDateObj = c.getTime();
-        LocalDateTime date = Instant.ofEpochMilli(myDateObj.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        date = getNearestHourQuarter(date);
-        return date.format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy, HH:mm a "));
-    }
-
-
-    public LocalDateTime getNearestHourQuarter(LocalDateTime datetime) {
-        int minutes = datetime.getMinute();
-        int mod = minutes % 15;
-        LocalDateTime newDatetime;
-        if (mod < 8) {
-            newDatetime = datetime.minusMinutes(mod);
-        } else {
-            newDatetime = datetime.plusMinutes(15 - mod);
-        }
-        newDatetime = newDatetime.truncatedTo(ChronoUnit.MINUTES);
-        return newDatetime;
-    }
-
-
-
-    public int getNoOfSeats() {
-        return numOfSeatsInTheFlight;
-    }
-
-    public String getFlightNumber() {
-        return flightNumber;
-    }
-
-    public void setNoOfSeatsInTheFlight(int numOfSeatsInTheFlight) {
-        this.numOfSeatsInTheFlight = numOfSeatsInTheFlight;
-    }
-
-    public String getFlightTime() {
-        return flightTime;
-    }
-
-    public List<Flight> getFlightList() {
-        return flightList;
-    }
-
-
-    public List<Customer> getListOfRegisteredCustomersInAFlight() {
-        return listOfRegisteredCustomersInAFlight;
-    }
-
-    public List<Customer> getListOfRegisteredCustomersInAFlight() {
-        return listOfRegisteredCustomersInAFlight;
-    }
-
-    public String getFlightSchedule() {
-        return flightSchedule;
-    }
-
-    public String getFromWhichCity() {
-        return fromWhichCity;
-    }
-
-    public String getGate() {
         return gate;
     }
 
-    public String getToWhichCity() {
-        return toWhichCity;
+    private LocalDateTime validateDepartureTime(LocalDateTime time) {
+        if (time == null || time.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Departure time must be in the future");
+        }
+        return time;
     }
 
+    private int validateSeats(int seats) {
+        if (seats < MIN_SEATS || seats > MAX_SEATS) {
+            throw new IllegalArgumentException(
+                    String.format("Seats must be between %d-%d", MIN_SEATS, MAX_SEATS));
+        }
+        return seats;
+    }
+
+    // Core methods
+    private Duration calculateFlightDuration(double distanceMiles) {
+        double hours = distanceMiles / AVERAGE_SPEED_KNOTS;
+        long minutes = Math.round((hours % 1) * 60);
+        return Duration.ofHours((long) hours).plusMinutes(minutes);
+    }
+
+    public LocalDateTime getArrivalTime() {
+        return departureTime.plus(flightDuration);
+    }
+
+    public boolean bookSeats(Customer customer, int seats) {
+        if (seats <= 0 || seats > availableSeats) {
+            return false;
+        }
+
+        if (!registeredCustomers.contains(customer)) {
+            registeredCustomers.add(customer);
+        }
+        availableSeats -= seats;
+        customer.addFlightBooking(this, seats);
+        return true;
+    }
+
+    // Getters
+    public String getFlightNumber() { return flightNumber; }
+    public String getFromCity() { return fromCity; }
+    public String getToCity() { return toCity; }
+    public String getGate() { return gate; }
+    public LocalDateTime getDepartureTime() { return departureTime; }
+    public Duration getFlightDuration() { return flightDuration; }
+    public int getAvailableSeats() { return availableSeats; }
+    public List<Customer> getRegisteredCustomers() { return registeredCustomers; }
+    public static List<Flight> getAllFlights() { return Collections.unmodifiableList(allFlights); }
+
+    // Utility methods
+    public String getFormattedSchedule() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm");
+        return String.format("%s | %s -> %s | Dep: %s | Arr: %s | Gate: %s",
+                flightNumber,
+                fromCity,
+                toCity,
+                departureTime.format(formatter),
+                getArrivalTime().format(formatter),
+                gate);
+    }
 }
