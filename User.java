@@ -1,8 +1,4 @@
-/*
- * This class is intended to be the main class for this Project. All necessary methods are getting calls from this class.
- *
- *
- */
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +6,10 @@ import java.util.Scanner;
 
 public class User {
 
-    // ************************************************************ Fields
-    // ************************************************************
 
-    /*
-     * 2D Array to store admin credentials. Default credentials are stored on [0][0]
-     * index. Max num of admins can be 10....
-     */
     static String[][] adminUserNameAndPassword = new String[10][2];
     private static List<Customer> customersCollection = new ArrayList<>();
 
-    // ************************************************************
-    // Behaviours/Methods
-    // ************************************************************
 
     public static void main(String[] args) {
         int countNumOfUsers = 1;
@@ -47,17 +34,9 @@ public class User {
 
         do {
             Scanner read1 = new Scanner(System.in);
-            /*
-             * If desiredOption is 1 then call the login method.... if default credentials
-             * are used then set the permission
-             * level to standard/default where the user can just view the customer's
-             * data...if not found, then return -1, and if
-             * data is found then show the user display menu for adding, updating, deleting
-             * and searching users/customers...
-             */
+
             if (desiredOption == 1) {
 
-                /* Default username and password.... */
                 adminUserNameAndPassword[0][0] = "root";
                 adminUserNameAndPassword[0][1] = "root";
                 
@@ -82,11 +61,7 @@ public class User {
                             "%-20sLogged in Successfully as \"%s\"..... For further Proceedings, enter a value from below....",
                             "", username);
 
-                    /*
-                     * Going to Display the CRUD operations to be performed by the privileged
-                     * user.....Which includes Creating, Updating
-                     * Reading(Searching) and deleting a customer....
-                     */
+
                     do {
                         System.out.printf("\n\n%-60s+++++++++ 2nd Layer Menu +++++++++%50sLogged in as \"%s\"\n", "",
                                 "", username);
@@ -119,11 +94,7 @@ public class User {
                             System.out.println();
                             c1.searchUser(customerID);
                         } else if (desiredOption == 3) {
-                            /*
-                             * If 3 is entered by the user, then call the update method of the Customer
-                             * Class with required
-                             * arguments.....
-                             */
+
                             
                             c1.displayCustomersData(false);
                             System.out.print("Enter the CustomerID to Update its Data :\t");
@@ -135,10 +106,7 @@ public class User {
                             }
 
                         } else if (desiredOption == 4) {
-                            /*
-                             * If 4 is entered, then ask the user to enter the customer id, and then delete
-                             * that customer....
-                             */
+
                             c1.displayCustomersData(false);
                             System.out.print("Enter the CustomerID to Delete its Data :\t");
                             String customerID = read1.nextLine();
@@ -148,7 +116,6 @@ public class User {
                                 System.out.printf("%-50sNo Customer with the ID %s Found...!!!\n", " ", customerID);
                             }
                         } else if (desiredOption == 5) {
-                            /* Call the Display Method of Customer Class.... */
                             c1.displayCustomersData(false);
                         } else if (desiredOption == 6) {
                             c1.displayCustomersData(false);
@@ -194,10 +161,7 @@ public class User {
 
                 }
             } else if (desiredOption == 2) {
-                /*
-                 * If desiredOption is 2, then call the registration method to register a
-                 * user......
-                 */
+
                 System.out.print("\nEnter the UserName to Register :    ");
                 String username = read1.nextLine();
                 System.out.print("Enter the Password to Register :     ");
@@ -209,11 +173,9 @@ public class User {
                     password = read1.nextLine();
                 }
 
-                /* Setting the credentials entered by the user..... */
                 adminUserNameAndPassword[countNumOfUsers][0] = username;
                 adminUserNameAndPassword[countNumOfUsers][1] = password;
 
-                /* Incrementing the numOfUsers */
                 countNumOfUsers++;
             } else if (desiredOption == 3) {
                 System.out.print("\n\nEnter the Email to Login : \t");
@@ -377,8 +339,6 @@ public class User {
         }
     }
 
-    // ************************************************************ Setters &
-    // Getters ************************************************************
 
     public static List<Customer> getCustomersCollection() {
         return customersCollection;
