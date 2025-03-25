@@ -1,15 +1,6 @@
 import java.util.*;
 
-public interface CustomerInterface {
-    void addNewCustomer();
-    void searchUser(String ID);
-    void editUserInfo(String ID);
-    void deleteUser(String ID);
-    void displayCustomersData(boolean showHeader);
-}
-public class Customer implements CustomerInterface {
-
-
+public class Customer {
     private final String userID;
     private String email;
     private String name;
@@ -17,252 +8,134 @@ public class Customer implements CustomerInterface {
     private final String password;
     private String address;
     private int age;
-    public List<Flight> flightsRegisteredByUser;
-    public List<Integer> numOfTicketsBookedByUser;
+    private final List<Flight> flightsRegisteredByUser;
+    private final List<Integer> numOfTicketsBookedByUser;
     public static final List<Customer> customerCollection = User.getCustomersCollection();
 
-
-
-    Customer() {
-        this.userID = null;
-        this.name = null;
-        this.email = null;
-        this.password = null;
-        this.phone = null;
-        this.address = null;
-        this.age = 0;
-        this.flightsRegisteredByUser = new ArrayList<>();
-        this.numOfTicketsBookedByUser = new ArrayList<>();
+    public Customer() {
+        this(null, null, null, null, null, 0);
     }
 
-
-    Customer(String name, String email, String password, String phone, String address, int age) {
+    public Customer(String name, String email, String password, String phone, String address, int age) {
         RandomGenerator random = new RandomGenerator();
         random.randomIDGen();
-        this.name = name;
         this.userID = random.getRandomNumber();
-        this.email = email;
-        this.password = password;
-        this.phone = phone;
+        this.name = validateName(name);
+        this.email = validateEmail(email);
+        this.password = validatePassword(password);
+        this.phone = validatePhone(phone);
         this.address = address;
-        this.age = age;
+        this.age = validateAge(age);
         this.flightsRegisteredByUser = new ArrayList<>();
         this.numOfTicketsBookedByUser = new ArrayList<>();
     }
 
-    private boolean isValidEmail(String email) {
-        return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
-    }
-
-    private boolean isValidPhoneNumber(String phone) {
-        return phone != null && phone.matches("^[0-9]{10}$");
-    }
-
-    private boolean isValidAge(int age) {
-        return age > 0 && age < 120;
-    }
-
-    public void addNewCustomer() {
-        System.out.printf("\n\n\n%60s ++++++++++++++ Welcome to the Customer Registration Portal ++++++++++++++", "");
-        Scanner read = new Scanner(System.in);
-        System.out.print("\nEnter your name :\t");
-        String name = read.nextLine();
-        System.out.print("Enter your email address :\t");
-        String email = read.nextLine();
-        while (!isValidEmail(email)) {
-            System.out.println("Invalid email format. Please enter a valid email:");
-            email = read.nextLine();
+    // Input validation methods
+    private String validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
         }
-        System.out.print("Enter your Password :\t");
-        String password = read.nextLine();
-        System.out.print("Enter your Phone number :\t");
-        String phone = read.nextLine();
-        System.out.print("Enter your address :\t");
-        String address = read.nextLine();
-        System.out.print("Enter your age :\t");
-        int age = read.nextInt();
-        customerCollection.add(new Customer(name, email, password, phone, address, age));
-    }
-
-    public Optional<Customer> findCustomerById(String userID) {
-        return customerCollection.stream()
-                .filter(c -> c.getUserID().equals(userID))
-                .findFirst();
-    }
-    private String toString(int i) {
-        return String.format("%10s| %-10d | %-10s | %-32s | %-7s | %-27s | %-35s | %-23s |", "", i,
-                randomIDDisplay(userID), name, age, email, address, phone);
-    }
-
-
-    public void searchUser(String ID) {
-        Optional<Customer> customer = findCustomerById(ID);
-        if (customer.isPresent()) {
-            System.out.println(customer.get().toString(1));
-        } else {
-            System.out.printf("%-50sNo Customer with the ID %s Found...!!!\n", " ", ID);
-        }
-    }
-
-    public boolean isUniqueData(String emailID) {
-        return customerCollection.stream()
-                .anyMatch(c -> emailID.equals(c.getEmail()));
-    }
-
-
-    public void editUserInfo(String ID) {
-        boolean isFound = false;
-        Scanner read = new Scanner(System.in);
-        for (Customer c : customerCollection) {
-            if (ID.equals(c.getUserID())) {
-                isFound = true;
-                System.out.print("\nEnter the new name of the Passenger:\t");
-                String name = read.nextLine();
-                c.setName(name);
-                System.out.print("Enter the new email address of Passenger " + name + ":\t");
-                c.setEmail(read.nextLine());
-                System.out.print("Enter the new Phone number of Passenger " + name + ":\t");
-                c.setPhone(read.nextLine());
-                System.out.print("Enter the new address of Passenger " + name + ":\t");
-                c.setAddress(read.nextLine());
-                System.out.print("Enter the new age of Passenger " + name + ":\t");
-                c.setAge(read.nextInt());
-                displayCustomersData(false);
-                break;
-            }
-        }
-        if (!isFound) {
-            System.out.printf("%-50sNo Customer with the ID %s Found...!!!\n", " ", ID);
-        }
-    }
-
-    public void deleteUser(String ID) {
-        boolean isFound = false;
-        Iterator<Customer> iterator = customerCollection.iterator();
-        while (iterator.hasNext()) {
-            Customer customer = iterator.next();
-            if (ID.equals(customer.getUserID())) {
-                isFound = true;
-                break;
-            }
-        }
-        if (isFound) {
-            iterator.remove();
-            System.out.printf("\n%-50sPrinting all  Customer's Data after deleting Customer with the ID %s.....!!!!\n",
-                    "", ID);
-            displayCustomersData(false);
-        } else {
-            System.out.printf("%-50sNo Customer with the ID %s Found...!!!\n", " ", ID);
-        }
-    }
-
-
-    public void displayCustomersData(boolean showHeader) {
-        displayHeader();
-        Iterator<Customer> iterator = customerCollection.iterator();
-        int i = 0;
-        while (iterator.hasNext()) {
-            i++;
-            Customer c = iterator.next();
-            System.out.println(c.toString(i));
-            System.out.printf(
-                    "%10s+------------+------------+----------------------------------+---------+-----------------------------+-------------------------------------+-------------------------+\n",
-                    "");
-        }
-    }
-
-    void displayHeader() {
-        System.out.println();
-        System.out.printf(
-                "%10s+------------+------------+----------------------------------+---------+-----------------------------+-------------------------------------+-------------------------+\n",
-                "");
-        System.out.printf(
-                "%10s| SerialNum  |   UserID   | Passenger Names                  | Age     | EmailID\t\t       | Home Address\t\t\t     | Phone Number\t       |%n",
-                "");
-        System.out.printf(
-                "%10s+------------+------------+----------------------------------+---------+-----------------------------+-------------------------------------+-------------------------+\n",
-                "");
-        System.out.println();
-
-    }
-
-
-    public String randomIDDisplay(String randomID) {
-        StringBuilder newString = new StringBuilder();
-        for (int i = 0; i < randomID.length(); i++) {
-            if (i == 3) {
-                newString.append(" ").append(randomID.charAt(i));
-            } else {
-                newString.append(randomID.charAt(i));
-            }
-        }
-        return newString.toString();
-    }
-    void addNewFlightToCustomerList(Flight f) {
-        this.flightsRegisteredByUser.add(f);
-
-    }
-
-
-    void addExistingFlightToCustomerList(int index, int numOfTickets) {
-        int newNumOfTickets = numOfTicketsBookedByUser.get(index) + numOfTickets;
-        this.numOfTicketsBookedByUser.set(index, newNumOfTickets);
-    }
-
-
-    public List<Flight> getFlightsRegisteredByUser() {
-        return flightsRegisteredByUser;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public String getUserID() {
-        return userID;
-    }
-
-    public String getName() {
         return name;
     }
 
-    public List<Integer> getNumOfTicketsBookedByUser() {
-        return numOfTicketsBookedByUser;
+    private String validateEmail(String email) {
+        if (email == null || !email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+        return email;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    private String validatePassword(String password) {
+        if (password == null || password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters");
+        }
+        return password;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    private String validatePhone(String phone) {
+        if (phone == null || !phone.matches("^\\+?[0-9]{10,15}$")) {
+            throw new IllegalArgumentException("Invalid phone number");
+        }
+        return phone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    private int validateAge(int age) {
+        if (age < 0 || age > 120) {
+            throw new IllegalArgumentException("Age must be between 0-120");
+        }
+        return age;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    // Core methods
+    public void registerNewCustomer() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("\n=== Customer Registration ===");
+
+        this.name = promptForInput(scanner, "Enter your name: ", this::validateName);
+        this.email = promptForUniqueInput(scanner, "Enter your email: ", this::validateEmail);
+        this.password = promptForInput(scanner, "Enter your password: ", this::validatePassword);
+        this.phone = promptForInput(scanner, "Enter your phone: ", this::validatePhone);
+        this.address = promptForInput(scanner, "Enter your address: ", s -> s);
+        this.age = Integer.parseInt(promptForInput(scanner, "Enter your age: ", s -> validateAge(Integer.parseInt(s)).toString());
+
+        customerCollection.add(this);
+        System.out.println("Registration successful! Your ID: " + this.userID);
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    private String promptForInput(Scanner scanner, String prompt, java.util.function.Function<String, String> validator) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return validator.apply(scanner.nextLine());
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    private String promptForUniqueInput(Scanner scanner, String prompt, java.util.function.Function<String, String> validator) {
+        while (true) {
+            String input = promptForInput(scanner, prompt, validator);
+            if (isEmailUnique(input)) {
+                return input;
+            }
+            System.out.println("Error: Email already registered");
+        }
+    }
+
+    private boolean isEmailUnique(String email) {
+        return customerCollection.stream().noneMatch(c -> c.getEmail().equalsIgnoreCase(email));
+    }
+
+    // Getters (no setters for final fields)
+    public String getUserID() { return userID; }
+    public String getEmail() { return email; }
+    public String getName() { return name; }
+    public String getPhone() { return phone; }
+    public String getPassword() { return password; }
+    public String getAddress() { return address; }
+    public int getAge() { return age; }
+    public List<Flight> getFlightsRegisteredByUser() { return flightsRegisteredByUser; }
+    public List<Integer> getNumOfTicketsBookedByUser() { return numOfTicketsBookedByUser; }
+
+    // Additional business methods...
+    public void addFlightBooking(Flight flight, int tickets) {
+        int existingIndex = findFlightIndex(flight);
+        if (existingIndex >= 0) {
+            numOfTicketsBookedByUser.set(existingIndex,
+                    numOfTicketsBookedByUser.get(existingIndex) + tickets);
+        } else {
+            flightsRegisteredByUser.add(flight);
+            numOfTicketsBookedByUser.add(tickets);
+        }
+    }
+
+    private int findFlightIndex(Flight flight) {
+        for (int i = 0; i < flightsRegisteredByUser.size(); i++) {
+            if (flightsRegisteredByUser.get(i).getFlightNumber().equals(flight.getFlightNumber())) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
