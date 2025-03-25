@@ -4,9 +4,11 @@ import java.time.temporal.*;
 import java.util.*;
 
 public class Flight extends FlightDistance {
-    private static final int MIN_SEATS = 50;
+    private static final int MIN_SEATS = 75;
     private static final int MAX_SEATS = 500;
     private static final double AVERAGE_SPEED_KNOTS = 450.0;
+    private static int nextFlightDay = 0;
+    private static final List<Flight> flightList = new ArrayList<>();
 
     private final String flightNumber;
     private final String fromCity;
@@ -16,7 +18,10 @@ public class Flight extends FlightDistance {
     private final Duration flightDuration;
     private int availableSeats;
     private final List<Customer> registeredCustomers;
-    private static final List<Flight> allFlights = new ArrayList<>();
+
+    public Flight() {
+        this("", "", "", "", LocalDateTime.now(), 0, 0);
+    }
 
     public Flight(String flightNumber, String fromCity, String toCity,
                   String gate, LocalDateTime departureTime,
@@ -29,7 +34,7 @@ public class Flight extends FlightDistance {
         this.flightDuration = calculateFlightDuration(distanceMiles);
         this.availableSeats = validateSeats(totalSeats);
         this.registeredCustomers = new ArrayList<>();
-        allFlights.add(this);
+        flightList.add(this);
     }
 
     // Validation methods
@@ -44,7 +49,7 @@ public class Flight extends FlightDistance {
         if (city == null || city.trim().isEmpty()) {
             throw new IllegalArgumentException("City cannot be empty");
         }
-        return city;
+        return city.trim();
     }
 
     private String validateGate(String gate) {
@@ -56,7 +61,7 @@ public class Flight extends FlightDistance {
 
     private LocalDateTime validateDepartureTime(LocalDateTime time) {
         if (time == null || time.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Departure time must be in the future");
+            throw new IllegalArgumentException("Departure time must be in future");
         }
         return time;
     }
@@ -93,6 +98,38 @@ public class Flight extends FlightDistance {
         return true;
     }
 
+    public static void scheduleRandomFlights(int count) {
+        RandomGenerator random = new RandomGenerator();
+        for (int i = 0; i < count; i++) {
+            String[][] destinations = random.randomDestinations();
+            String[] distances = calculateDistance(
+                    Double.parseDouble(destinations[0][1]),
+                    Double.parseDouble(destinations[0][2]),
+                    Double.parseDouble(destinations[1][1]),
+                    Double.parseDouble(destinations[1][2])
+            );
+
+            new Flight(
+                    random.generateFlightNumber(),
+                    destinations[0][0],
+                    destinations[1][0],
+                    random.generateGate(),
+                    generateRandomDepartureTime(),
+                    Double.parseDouble(distances[0]),
+                    random.generateSeats()
+            );
+        }
+    }
+
+    private static LocalDateTime generateRandomDepartureTime() {
+        nextFlightDay += (int)(Math.random() * 7) + 1;
+        return LocalDateTime.now()
+                .plusDays(nextFlightDay)
+                .plusHours(nextFlightDay)
+                .withMinute(0)
+                .truncatedTo(ChronoUnit.HOURS);
+    }
+
     // Getters
     public String getFlightNumber() { return flightNumber; }
     public String getFromCity() { return fromCity; }
@@ -101,18 +138,24 @@ public class Flight extends FlightDistance {
     public LocalDateTime getDepartureTime() { return departureTime; }
     public Duration getFlightDuration() { return flightDuration; }
     public int getAvailableSeats() { return availableSeats; }
-    public List<Customer> getRegisteredCustomers() { return registeredCustomers; }
-    public static List<Flight> getAllFlights() { return Collections.unmodifiableList(allFlights); }
+    public List<Customer> getPassengers() { return Collections.unmodifiableList(registeredCustomers); }
+    public static List<Flight> getAllFlights() { return Collections.unmodifiableList(flightList); }
 
-    // Utility methods
-    public String getFormattedSchedule() {
+    // Display methods
+    public void displaySchedule() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm");
-        return String.format("%s | %s -> %s | Dep: %s | Arr: %s | Gate: %s",
+        System.out.printf("%-8s | %-15s -> %-15s | Dep: %s | Arr: %s | Gate: %-4s | Seats: %-3d%n",
                 flightNumber,
                 fromCity,
                 toCity,
                 departureTime.format(formatter),
                 getArrivalTime().format(formatter),
-                gate);
+                gate,
+                availableSeats);
+    }
+
+    public static void displayAllFlights() {
+        System.out.println("\n=== Flight Schedule ===");
+        flightList.forEach(Flight::displaySchedule);
     }
 }
