@@ -200,5 +200,6 @@ public class User {
         System.out.println("1. Admins can manage customers and flights");
         System.out.println("2. Customers can book and manage flights");
         System.out.println("3. All users must register before logging in");
+        //FIxed  Manual
     }
 }
