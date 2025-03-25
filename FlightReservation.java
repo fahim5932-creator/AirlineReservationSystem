@@ -30,16 +30,6 @@ public class FlightReservation implements FlightReservationInterface {
 
 
 
-        /**
-         * Book the numOfTickets for said flight for the specified user. Update the available seats in main system by
-         * Subtracting the numOfTickets from the main system. If a new customer registers for the flight, then it adds
-         * the customer to that flight, else if the user is already added to that flight, then it just updates the
-         * numOfSeats of that flight.
-         *
-         * @param flightNo     FlightID of the flight to be booked
-         * @param numOfTickets number of tickets to be booked
-         * @param userID       userID of the user which is booking the flight
-         */
         void bookFlight(String flightNo, int numOfTickets, String userID) {
             boolean isFound = false;
             for (Flight f1 : flight.getFlightList()) {
@@ -181,7 +171,6 @@ public class FlightReservation implements FlightReservationInterface {
             }
         }
 
-        /*overloaded toString() method for displaying all users in a flight....*/
 
         public String toString(int serialNum, Customer customer, int index) {
             return String.format("%10s| %-10d | %-10s | %-32s | %-7s | %-27s | %-35s | %-23s |       %-7s  |", "", (serialNum + 1), customer.randomIDDisplay(customer.getUserID()), customer.getName(),
